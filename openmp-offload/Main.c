@@ -1,4 +1,5 @@
 #include "XSbench_header.h"
+#include "energy.h"
 
 #ifdef MPI
 #include<mpi.h>
@@ -6,6 +7,8 @@
 
 int main( int argc, char* argv[] )
 {
+    power_init();
+
 	// =====================================================================
 	// Initialization & Command Line Read-In
 	// =====================================================================
@@ -70,6 +73,7 @@ int main( int argc, char* argv[] )
 
 	// Start Simulation Timer
 	omp_start = omp_get_wtime();
+    power_start();
 
 	// Run simulation
 	if( in.simulation_method == EVENT_BASED )
@@ -93,6 +97,7 @@ int main( int argc, char* argv[] )
 		printf("\n" );
 		printf("Simulation complete.\n" );
 	}
+    double P = power_stop();
 
 	// End Simulation Timer
 	omp_end = omp_get_wtime();
@@ -105,11 +110,12 @@ int main( int argc, char* argv[] )
 	verification = verification % 999983;
 
 	// Print / Save Results and Exit
-	int is_invalid_result = print_results( in, mype, omp_end-omp_start, nprocs, verification );
+	int is_invalid_result = print_results( in, mype, omp_end-omp_start, nprocs, verification, P );
 
 	#ifdef MPI
 	MPI_Finalize();
 	#endif
 
+    power_deinit();
 	return is_invalid_result;
 }

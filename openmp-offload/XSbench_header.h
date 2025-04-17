@@ -87,7 +87,7 @@ void fancy_int(long a);
 Inputs read_CLI( int argc, char * argv[] );
 void print_CLI_error(void);
 void print_inputs(Inputs in, int nprocs, int version);
-int print_results( Inputs in, int mype, double runtime, int nprocs, unsigned long long vhash );
+int print_results( Inputs in, int mype, double runtime, int nprocs, unsigned long long vhash, double P );
 void binary_write( Inputs in, SimulationData SD );
 SimulationData binary_read( Inputs in );
 

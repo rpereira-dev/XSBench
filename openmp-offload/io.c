@@ -37,7 +37,7 @@ void center_print(const char *s, int width)
 }
 
 int print_results( Inputs in, int mype, double runtime, int nprocs,
-	unsigned long long vhash )
+	unsigned long long vhash, double P )
 {
 	// Calculate Lookups per sec
 	int lookups = 0;
@@ -75,10 +75,12 @@ int print_results( Inputs in, int mype, double runtime, int nprocs,
 		printf("Avg Lookups/s per MPI rank: ");
 		fancy_int(total_lookups / nprocs);
 		#else
-		printf("Runtime:     %.3lf seconds\n", runtime);
-		printf("Lookups:     "); fancy_int(lookups);
-		printf("Lookups/s:   ");
+		printf("Runtime:        %.3lf seconds\n", runtime);
+		printf("Lookups:        "); fancy_int(lookups);
+		printf("Lookups/s:      ");
 		fancy_int(lookups_per_sec);
+		printf("Lookups/s/Watt: ");
+		fancy_int((int) (lookups_per_sec / P));
 		#endif
 	}
 
