@@ -1,7 +1,7 @@
 #include "XSbench_header.h"
 #include "energy.h"
 
-#ifdef MPI
+#ifdef USE_MPI
 #include<mpi.h>
 #endif
 
@@ -18,7 +18,7 @@ int main( int argc, char* argv[] )
 	int nprocs = 1;
 	unsigned long long verification;
 
-	#ifdef MPI
+	#ifdef USE_MPI
 	MPI_Status stat;
 	MPI_Init(&argc, &argv);
 	MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
@@ -112,7 +112,7 @@ int main( int argc, char* argv[] )
 	// Print / Save Results and Exit
 	int is_invalid_result = print_results( in, mype, omp_end-omp_start, nprocs, verification, P );
 
-	#ifdef MPI
+	#ifdef USE_MPI
 	MPI_Finalize();
 	#endif
 
