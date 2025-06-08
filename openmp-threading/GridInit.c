@@ -175,12 +175,15 @@ SimulationData grid_init_do_not_profile( Inputs in, int mype )
 
 	// Allocate and initialize replicas
 #ifdef AML
-	// num_nucs
+
+    // enum hwloc_distances_kind_e kind = HWLOC_DISTANCES_KIND_FROM_OS | HWLOC_DISTANCES_KIND_MEANS_LATENCY;
+    enum hwloc_distances_kind_e kind = HWLOC_DISTANCES_KIND_FROM_OS | HWLOC_DISTANCES_KIND_MEANS_BANDWIDTH;
+
+    // num_nucs
 	aml_replicaset_hwloc_create(&(SD.num_nucs_replica),
 															SD.length_num_nucs * sizeof(*(SD.num_nucs)),
 															HWLOC_OBJ_CORE,
-															HWLOC_DISTANCES_KIND_FROM_OS |
-															HWLOC_DISTANCES_KIND_MEANS_LATENCY);
+                                                            kind);
 	nbytes += (SD.num_nucs_replica)->n * (SD.num_nucs_replica)->size;
 	aml_replicaset_init(SD.num_nucs_replica, SD.num_nucs);
 
@@ -188,8 +191,7 @@ SimulationData grid_init_do_not_profile( Inputs in, int mype )
 	aml_replicaset_hwloc_create(&(SD.concs_replica),
 															SD.length_concs * sizeof(*(SD.concs)),
 															HWLOC_OBJ_CORE,
-															HWLOC_DISTANCES_KIND_FROM_OS |
-															HWLOC_DISTANCES_KIND_MEANS_LATENCY);
+                                                            kind);
 	nbytes += (SD.concs_replica)->n * (SD.concs_replica)->size;
 	aml_replicaset_init(SD.concs_replica, SD.concs);
 
@@ -198,8 +200,7 @@ SimulationData grid_init_do_not_profile( Inputs in, int mype )
 		aml_replicaset_hwloc_create(&(SD.unionized_energy_array_replica),
 																SD.length_unionized_energy_array * sizeof(*(SD.unionized_energy_array)),
 																HWLOC_OBJ_CORE,
-																HWLOC_DISTANCES_KIND_FROM_OS |
-																HWLOC_DISTANCES_KIND_MEANS_LATENCY);
+																kind);
 		nbytes += (SD.unionized_energy_array_replica)->n * (SD.unionized_energy_array_replica)->size;
 		aml_replicaset_init(SD.unionized_energy_array_replica, SD.unionized_energy_array);
 	}
@@ -209,8 +210,7 @@ SimulationData grid_init_do_not_profile( Inputs in, int mype )
 		aml_replicaset_hwloc_create(&(SD.index_grid_replica),
 																SD.length_index_grid * sizeof(*(SD.index_grid)),
 																HWLOC_OBJ_CORE,
-																HWLOC_DISTANCES_KIND_FROM_OS |
-																HWLOC_DISTANCES_KIND_MEANS_LATENCY);
+																kind);
 		nbytes += (SD.index_grid_replica)->n * (SD.index_grid_replica)->size;
 		aml_replicaset_init(SD.index_grid_replica, SD.index_grid);
 	}
@@ -219,8 +219,7 @@ SimulationData grid_init_do_not_profile( Inputs in, int mype )
 	aml_replicaset_hwloc_create(&(SD.nuclide_grid_replica),
 															SD.length_nuclide_grid * sizeof(*(SD.nuclide_grid)),
 															HWLOC_OBJ_CORE,
-															HWLOC_DISTANCES_KIND_FROM_OS |
-															HWLOC_DISTANCES_KIND_MEANS_LATENCY);
+															kind);
 	nbytes += (SD.nuclide_grid_replica)->n * (SD.nuclide_grid_replica)->size;
 	aml_replicaset_init(SD.nuclide_grid_replica, SD.nuclide_grid);
 #endif

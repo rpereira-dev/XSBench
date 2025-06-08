@@ -1,3 +1,4 @@
+# include <stdio.h>
 # include <stdint.h>
 # include <stdlib.h>
 # include <time.h>
@@ -82,11 +83,31 @@ power_deinit(void)
 static zes_driver_handle_t zes_driver;
 static uint32_t zes_driver_count;
 
-static zes_device_handle_t zes_device;
-static uint32_t zes_device_count;
+# define MAX_DEV_HDL 64
+static ze_device_handle_t ze_devices[MAX_DEV_HDL];
+static uint32_t ze_devices_count;
 
-static zes_pwr_handle_t zes_pwr_handle;
+# define MAX_PWR_HDL 64
+static zes_pwr_handle_t zes_pwr_handle[MAX_DEV_HDL][MAX_PWR_HDL];
 static uint32_t zes_pwr_handle_count;
+
+//  Level Zero Sysman API device indexing is different from Level Zero Core API
+//  Here is a table (please double check with printf reported, and ZE_AFFINITY_MASK)
+//      ZE  ZES
+//      0   4
+//      1   5
+//      2   3
+//      3   1
+//      4   0
+//      5   2
+
+# ifndef ZES_ENERGY_DEVICE_HDL_IDX
+#  define ZES_ENERGY_DEVICE_HDL_IDX 4
+# endif
+
+# ifndef ZES_ENERGY_PWR_HDL_IDX
+#  define ZES_ENERGY_PWR_HDL_IDX 0
+# endif
 
 # define ZE_SAFE_CALL(X)                \
     do {                                \
@@ -104,12 +125,40 @@ power_init(void)
     zes_driver_count = 1;
     ZE_SAFE_CALL(zesDriverGet(&zes_driver_count, &zes_driver));
 
-    zes_device_count = 1;
-    ZE_SAFE_CALL(zesDeviceGet(zes_driver, &zes_device_count, &zes_device));
+    ZE_SAFE_CALL(zeDeviceGet(zes_driver, &ze_devices_count, NULL));
+    printf("Looking for %d devices\n", ze_devices_count);
+    ZE_SAFE_CALL(zeDeviceGet(zes_driver, &ze_devices_count, ze_devices));
 
-    zes_pwr_handle_count = 1;
-    ZE_SAFE_CALL(zesDeviceEnumPowerDomains(zes_device, &zes_pwr_handle_count, &zes_pwr_handle));
+    for (int devIndex = 0 ; devIndex < ze_devices_count ; ++devIndex)
+    {
+        zes_device_handle_t dev_hdl = (zes_device_handle_t) ze_devices[devIndex];
+
+        ZE_SAFE_CALL(zesDeviceEnumPowerDomains(ze_devices[devIndex], &zes_pwr_handle_count, NULL));
+        ZE_SAFE_CALL(zesDeviceEnumPowerDomains(ze_devices[devIndex], &zes_pwr_handle_count, zes_pwr_handle[devIndex]));
+
+        for (int pwrIndex = 0 ; pwrIndex < zes_pwr_handle_count ; ++pwrIndex)
+        {
+            zes_power_properties_t props {};
+            props.stype = ZES_STRUCTURE_TYPE_POWER_PROPERTIES;
+            if (zesPowerGetProperties(zes_pwr_handle[devIndex][pwrIndex], &props) == ZE_RESULT_SUCCESS)
+            {
+                if (props.onSubdevice)
+                {
+                    printf("[device %d] [pwr handle %d] Sub-device %u power:n\n", devIndex, pwrIndex, props.subdeviceId);
+                    printf("[device %d] [pwr handle %d]     Can control: %s\n",   devIndex, pwrIndex, props.canControl ? "yes" : "no");
+                }
+                else
+                {
+                    printf("[device %d] [pwr handle %d] Total package power:n\n", devIndex, pwrIndex);
+                    printf("[device %d] [pwr handle %d]     Can control: %s\n",   devIndex, pwrIndex, props.canControl ? "yes" : "no");
+                }
+            }
+        }
+    }
+
+    printf("Measuring on device %d for power handle %d\n", ZES_ENERGY_DEVICE_HDL_IDX, ZES_ENERGY_PWR_HDL_IDX);
 }
+
 
 void
 power_deinit(void)
@@ -125,11 +174,12 @@ static unsigned long long mj1, mj2;
 # endif
 
 # if ROCM_ENERGY
-static uint64_t m1, m2;
+static double e1, e2;
 # endif
 
 # if ZES_ENERGY
-static zes_power_energy_counter_t e1, e2;
+static zes_power_energy_counter_t e1[MAX_DEV_HDL][MAX_PWR_HDL];
+static zes_power_energy_counter_t e2[MAX_DEV_HDL][MAX_PWR_HDL];
 # endif
 
 void
@@ -140,11 +190,17 @@ power_start(void)
     # endif
 
     # if ROCM_ENERGY
-    rsmi_dev_power_get(rsmi_device, &m1, &rsmi_type);
+    uint64_t mj;
+    float res;
+    uint64_t timestamp;
+    rsmi_dev_energy_count_get(rsmi_device, &mj, &res, &timestamp);
+    e1 = (double) mj * res * 0.000001;
     # endif
 
     # if ZES_ENERGY
-    ZE_SAFE_CALL(zesPowerGetEnergyCounter(zes_pwr_handle, &e1));
+    for (int devIndex = 0 ; devIndex < ze_devices_count ; ++devIndex)
+        for (int pwrIndex = 0 ; pwrIndex < zes_pwr_handle_count ; ++pwrIndex)
+            ZE_SAFE_CALL(zesPowerGetEnergyCounter(zes_pwr_handle[devIndex][pwrIndex], &e1[devIndex][pwrIndex]));
     # endif
 
     t1 = power_get_nanotime();
@@ -163,15 +219,36 @@ power_stop(void)
     # endif
 
     # if ROCM_ENERGY
-    rsmi_dev_power_get(rsmi_device, &m2, &rsmi_type);
-    double P = (double) (m2 - m1) / 1e6;
+    uint64_t mj;
+    float res;
+    uint64_t timestamp;
+    rsmi_dev_energy_count_get(rsmi_device, &mj, &res, &timestamp);
+    e2 = (double) mj * res * 0.000001;
+    double J = (e2 - e1);
+    double P = J / s;
     # endif
 
     # if ZES_ENERGY
-    ZE_SAFE_CALL(zesPowerGetEnergyCounter(zes_pwr_handle, &e2));
-    double uJ = (double) (e2.energy - e1.energy);
-    double J = uJ / (double)1e6;
-    double P = J / s;
+    double P = 0.0;
+    for (int devIndex = 0 ; devIndex < ze_devices_count ; ++devIndex)
+    {
+        for (int pwrIndex = 0 ; pwrIndex < zes_pwr_handle_count ; ++pwrIndex)
+        {
+            ZE_SAFE_CALL(zesPowerGetEnergyCounter(zes_pwr_handle[devIndex][pwrIndex], &e2[devIndex][pwrIndex]));
+            double uJ = (double) (e2[devIndex][pwrIndex].energy - e1[devIndex][pwrIndex].energy);
+            double J = uJ / (double)1e6;
+            char * msg;
+            if (devIndex == ZES_ENERGY_DEVICE_HDL_IDX && pwrIndex == ZES_ENERGY_PWR_HDL_IDX)
+            {
+                P = J / s;
+                msg = "* returned in the power measurement";
+            }
+            else
+                msg = "(unused)";
+
+            printf("[device %d][pwr handle %d] used %lf J over %lf s - %s\n", devIndex, pwrIndex, J, s, msg);
+        }
+    }
     # endif
 
     return P;

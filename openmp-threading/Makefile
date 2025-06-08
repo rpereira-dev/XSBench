@@ -11,7 +11,7 @@ OPENMP      = yes
 DEBUG       = no
 PROFILE     = no
 MPI         = no
-AML         = no
+AML         = yes
 
 #===============================================================================
 # Program name & source code list
@@ -61,10 +61,10 @@ ifneq (,$(findstring clang,$(CC)))
 endif
 
 # Intel Compiler
-ifneq (,$(findstring intel,$(CC)))
+ifneq (,$(findstring icx,$(CC)))
   CFLAGS += -ipo
   ifeq ($(OPENMP),yes)
-	CFLAGS += -fopenmp -DOPENMP
+	CFLAGS += -qopenmp -DOPENMP
   endif
 endif
 
