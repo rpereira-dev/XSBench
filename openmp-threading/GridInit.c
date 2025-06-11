@@ -176,8 +176,8 @@ SimulationData grid_init_do_not_profile( Inputs in, int mype )
 	// Allocate and initialize replicas
 #ifdef AML
 
-    // enum hwloc_distances_kind_e kind = HWLOC_DISTANCES_KIND_FROM_OS | HWLOC_DISTANCES_KIND_MEANS_LATENCY;
-    enum hwloc_distances_kind_e kind = HWLOC_DISTANCES_KIND_FROM_OS | HWLOC_DISTANCES_KIND_MEANS_BANDWIDTH;
+    enum hwloc_distances_kind_e kind = HWLOC_DISTANCES_KIND_FROM_OS | HWLOC_DISTANCES_KIND_MEANS_LATENCY;
+    //enum hwloc_distances_kind_e kind = HWLOC_DISTANCES_KIND_FROM_OS | HWLOC_DISTANCES_KIND_MEANS_BANDWIDTH;
 
     // num_nucs
 	aml_replicaset_hwloc_create(&(SD.num_nucs_replica),
@@ -196,7 +196,7 @@ SimulationData grid_init_do_not_profile( Inputs in, int mype )
 	aml_replicaset_init(SD.concs_replica, SD.concs);
 
 	// unionized_energy_array
-	if( in.grid_type == UNIONIZED || in.grid_type == NUCLIDE ){
+	if( in.grid_type == UNIONIZED){
 		aml_replicaset_hwloc_create(&(SD.unionized_energy_array_replica),
 																SD.length_unionized_energy_array * sizeof(*(SD.unionized_energy_array)),
 																HWLOC_OBJ_CORE,
@@ -206,7 +206,7 @@ SimulationData grid_init_do_not_profile( Inputs in, int mype )
 	}
 
 	// index grid
-	if( in.grid_type == UNIONIZED || in.grid_type == HASH || in.grid_type == NUCLIDE ){
+	if( in.grid_type == UNIONIZED || in.grid_type == HASH ){
 		aml_replicaset_hwloc_create(&(SD.index_grid_replica),
 																SD.length_index_grid * sizeof(*(SD.index_grid)),
 																HWLOC_OBJ_CORE,

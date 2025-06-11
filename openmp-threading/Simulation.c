@@ -146,10 +146,10 @@ unsigned long long run_history_based_simulation(Inputs in, SimulationData SD, in
 	for( p = 0; p < in.particles; p++ )
 	{
 		#ifdef AML
-		int * num_nucs = aml_replicaset_hwloc_local_replica(SD.num_nucs_replica);
+        int * num_nucs = aml_replicaset_hwloc_local_replica(SD.num_nucs_replica);
 		double * concs = aml_replicaset_hwloc_local_replica(SD.concs_replica);
-		double * unionized_energy_array = aml_replicaset_hwloc_local_replica(SD.unionized_energy_array_replica);
-		int * index_grid = aml_replicaset_hwloc_local_replica(SD.index_grid_replica);
+		double * unionized_energy_array = in.grid_type == UNIONIZED ? aml_replicaset_hwloc_local_replica(SD.unionized_energy_array_replica) : NULL;
+		int * index_grid = in.grid_type == NUCLIDE ? NULL : aml_replicaset_hwloc_local_replica(SD.index_grid_replica);
 		NuclideGridPoint * nuclide_grid = aml_replicaset_hwloc_local_replica(SD.nuclide_grid_replica);
 		#else
 		int * num_nucs = SD.num_nucs;
