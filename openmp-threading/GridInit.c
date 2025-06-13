@@ -176,8 +176,8 @@ SimulationData grid_init_do_not_profile( Inputs in, int mype )
 	// Allocate and initialize replicas
 #ifdef AML
 
-    enum hwloc_distances_kind_e kind = HWLOC_DISTANCES_KIND_FROM_OS | HWLOC_DISTANCES_KIND_MEANS_LATENCY;
-    //enum hwloc_distances_kind_e kind = HWLOC_DISTANCES_KIND_FROM_OS | HWLOC_DISTANCES_KIND_MEANS_BANDWIDTH;
+    // enum hwloc_distances_kind_e kind = HWLOC_DISTANCES_KIND_FROM_OS | HWLOC_DISTANCES_KIND_MEANS_LATENCY;
+    enum hwloc_distances_kind_e kind = HWLOC_DISTANCES_KIND_FROM_OS | HWLOC_DISTANCES_KIND_MEANS_BANDWIDTH;
 
     // num_nucs
 	aml_replicaset_hwloc_create(&(SD.num_nucs_replica),

@@ -46,11 +46,11 @@ unsigned long long run_event_based_simulation(Inputs in, SimulationData SD, int 
 	for( i = 0; i < in.lookups; i++ )
 	{
 		#ifdef AML
-		int * num_nucs = aml_replicaset_hwloc_local_replica(SD.num_nucs_replica);
-		double * concs = aml_replicaset_hwloc_local_replica(SD.concs_replica);
-		double * unionized_energy_array = aml_replicaset_hwloc_local_replica(SD.unionized_energy_array_replica);
-		int * index_grid = aml_replicaset_hwloc_local_replica(SD.index_grid_replica);
-		NuclideGridPoint * nuclide_grid = aml_replicaset_hwloc_local_replica(SD.nuclide_grid_replica);
+        int * num_nucs = aml_replicaset_hwloc_local_replica(SD.num_nucs_replica);
+        double * concs = aml_replicaset_hwloc_local_replica(SD.concs_replica);
+        double * unionized_energy_array = in.grid_type == UNIONIZED ? aml_replicaset_hwloc_local_replica(SD.unionized_energy_array_replica) : NULL;
+        int * index_grid = in.grid_type == NUCLIDE ? NULL : aml_replicaset_hwloc_local_replica(SD.index_grid_replica);
+        NuclideGridPoint * nuclide_grid = aml_replicaset_hwloc_local_replica(SD.nuclide_grid_replica);
 		#else
 		int * num_nucs = SD.num_nucs;
 		double * concs = SD.concs;
@@ -804,13 +804,13 @@ unsigned long long run_event_based_simulation_optimization_1(Inputs in, Simulati
 		#pragma omp parallel for schedule(dynamic,100) reduction(+:verification)
 		for( i = offset; i < offset + num_samples_per_mat[m]; i++)
 		{
-			#ifdef AML
-			int * num_nucs = aml_replicaset_hwloc_local_replica(SD.num_nucs_replica);
-			double * concs = aml_replicaset_hwloc_local_replica(SD.concs_replica);
-			double * unionized_energy_array = aml_replicaset_hwloc_local_replica(SD.unionized_energy_array_replica);
-			int * index_grid = aml_replicaset_hwloc_local_replica(SD.index_grid_replica);
-			NuclideGridPoint * nuclide_grid = aml_replicaset_hwloc_local_replica(SD.nuclide_grid_replica);
-			#else
+            #ifdef AML
+            int * num_nucs = aml_replicaset_hwloc_local_replica(SD.num_nucs_replica);
+            double * concs = aml_replicaset_hwloc_local_replica(SD.concs_replica);
+            double * unionized_energy_array = in.grid_type == UNIONIZED ? aml_replicaset_hwloc_local_replica(SD.unionized_energy_array_replica) : NULL;
+            int * index_grid = in.grid_type == NUCLIDE ? NULL : aml_replicaset_hwloc_local_replica(SD.index_grid_replica);
+            NuclideGridPoint * nuclide_grid = aml_replicaset_hwloc_local_replica(SD.nuclide_grid_replica);
+            #else
 			int * num_nucs = SD.num_nucs;
 			double * concs = SD.concs;
 			double * unionized_energy_array = SD.unionized_energy_array;
