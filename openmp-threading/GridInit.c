@@ -176,7 +176,7 @@ SimulationData grid_init_do_not_profile( Inputs in, int mype )
 	// Allocate and initialize replicas
 #ifdef AML
 
-    // const enum aml_replicaset_attr_kind_e kind = AML_REPLICASET_ATTR_LATENCY;
+    //const enum aml_replicaset_attr_kind_e kind = AML_REPLICASET_ATTR_LATENCY;
     const enum aml_replicaset_attr_kind_e kind = AML_REPLICASET_ATTR_BANDWIDTH;
 
     // num_nucs
@@ -194,7 +194,7 @@ SimulationData grid_init_do_not_profile( Inputs in, int mype )
 	aml_replicaset_init(SD.concs_replica, SD.concs);
 
 	// unionized_energy_array
-	if( in.grid_type == UNIONIZED || in.grid_type == NUCLIDE){
+	if( in.grid_type == UNIONIZED){
 		aml_replicaset_hwloc_create(&(SD.unionized_energy_array_replica),
 																SD.length_unionized_energy_array * sizeof(*(SD.unionized_energy_array)),
 																kind);
@@ -203,7 +203,7 @@ SimulationData grid_init_do_not_profile( Inputs in, int mype )
 	}
 
 	// index grid
-	if( in.grid_type == UNIONIZED || in.grid_type == HASH || in.grid_type == NUCLIDE ){
+	if( in.grid_type == UNIONIZED || in.grid_type == HASH){
 		aml_replicaset_hwloc_create(&(SD.index_grid_replica),
 																SD.length_index_grid * sizeof(*(SD.index_grid)),
 																kind);
