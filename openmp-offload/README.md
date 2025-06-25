@@ -9,7 +9,9 @@ clang++ -O3 -Wall -fopenmp -fopenmp-offload-mandatory -foffload-lto -fopenmp-tar
 ```
 
 # AMD
+```
 clang++ -O3 -Wall -fopenmp -fopenmp-offload-mandatory -foffload-lto -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa --offload-arch=gfx90a,gfx942 Main.c GridInit.c io.c Materials.c Simulation.c XSutils.c energy.cc -DROCM_ENERGY=1 -L $(ROCM_PATH)/lib/ -lamdhip64 -L $(ROCM_PATH)/lib/ -lrocm_smi64 -I $(ROCM_PATH)/include
+```
 
 # RUN AS
 ```
